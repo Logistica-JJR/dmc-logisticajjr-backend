@@ -1,12 +1,13 @@
 package com.logisticajjr.bodega.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -21,16 +22,19 @@ public class Order {
     @EqualsAndHashCode.Include
     private Integer idOrder;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_user", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "id_user", nullable = false, foreignKey = @ForeignKey(name = "FK_ORDER_USER"))
     private User user;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_client", nullable = false)
+
+    @ManyToOne
+    @JoinColumn(name = "id_client", nullable = false, foreignKey = @ForeignKey(name = "FK_ORDER_CLIENT"))
     private Client client;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderDetail> orderDetail;
-    private char state;
-    private Date createdAt;
-    private Date modifiedAt;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime modifiedAt = LocalDateTime.now();
 
 }

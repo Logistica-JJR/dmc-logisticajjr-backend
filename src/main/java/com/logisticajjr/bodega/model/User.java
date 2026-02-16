@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -18,13 +18,19 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer idUser;
+
+    @Column(nullable = false, length = 60, unique = true)
     private String username;
+
+    @Column(nullable = false, length = 60)
     private String password;
+
     private String firstName;
     private String lastName;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne
     @JoinColumn(name = "user_type_id", nullable = false)
     private UserType userType;
-    private Date createdAt;
-    private Date modifiedAt;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime modifiedAt = LocalDateTime.now();
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class UserType {
     @EqualsAndHashCode.Include
     private Integer idUserType;
     private String name;
-    private char state;
-    private Date createdAt;
-    private Date modifiedAt;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime modifiedAt = LocalDateTime.now();
 }

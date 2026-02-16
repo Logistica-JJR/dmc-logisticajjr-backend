@@ -7,8 +7,6 @@ import com.logisticajjr.bodega.service.IUserTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class UserTypeServiceImpl extends CRUDImpl<UserType, Integer> implements IUserTypeService {
