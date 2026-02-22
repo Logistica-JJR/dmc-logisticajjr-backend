@@ -42,6 +42,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>3.2.2</version>
+        </dependency>
+
         <!-- Validaciones: @NotNull, @Size, @Email, etc. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

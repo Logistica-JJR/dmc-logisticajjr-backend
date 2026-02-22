@@ -1,8 +1,10 @@
 package com.logisticajjr.bodega.controller;
 
+import com.logisticajjr.bodega.dto.UserDTO;
 import com.logisticajjr.bodega.model.User;
 import com.logisticajjr.bodega.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,17 +16,19 @@ import java.util.List;
 public class UserController {
 
     private final IUserService service;
+    private final ModelMapper modelMapper;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAll() throws Exception{
-        List<User> list = service.findAll();
+    public ResponseEntity<List<UserDTO>> getAll() throws Exception{
+        List<UserDTO> list = service.findAll().stream()
+                .map(e -> modelMapper.map(e, UserDTO.class)).toList();
         return ResponseEntity.ok().body(list);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> get(@PathVariable("id") Integer id) throws Exception{
+    public ResponseEntity<UserDTO> get(@PathVariable("id") Integer id) throws Exception{
         User user = service.findById(id);
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().body(modelMapper.map(user, UserDTO.class));
     }
 
     @PostMapping

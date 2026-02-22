@@ -20,6 +20,6 @@ public class UserServiceImpl extends CRUDImpl<User, Integer> implements IUserSer
 
     @Override
     public User login(String username, String password) {
-        return new User();
+        return repo.findById(1).orElse(null);
     }
 }
