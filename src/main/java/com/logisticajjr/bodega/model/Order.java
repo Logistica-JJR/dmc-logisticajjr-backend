@@ -34,7 +34,22 @@ public class Order {
     @JsonManagedReference
     private List<OrderDetail> orderDetail;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime modifiedAt = LocalDateTime.now();
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
+    private LocalDateTime modifiedAt;
+
+    private Character state;
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        if (createdAt == null) createdAt = now;
+        if (modifiedAt == null) modifiedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        modifiedAt = LocalDateTime.now();
+    }
 }
