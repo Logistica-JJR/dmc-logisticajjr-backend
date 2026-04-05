@@ -85,11 +85,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Validaciones: @NotNull, @Size, @Email, etc. -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
 
         <!-- Lombok -->
         <dependency>
@@ -115,11 +110,6 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <!-- Spring Security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
 
         <!-- DevTools opcional -->
         <dependency>
