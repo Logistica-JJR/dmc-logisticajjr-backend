@@ -61,3 +61,12 @@ jobs:
             --resource-group orders-rg-app-dev-westus2-01 \
             --image ${{ secrets.FRONTEND_IMAGE_NAME }}:dev \
             --set-env-vars BACKEND_URL="https://$BACKEND_URL/" RESTART_TRIGGER=$(date +%s)     
+
+      - name: Restart Prometheus CA
+        run: |
+          echo "Restarting Prometheus container app..."
+          az containerapp update \
+            --name orders-prometheus-dev-01 \
+            --resource-group orders-rg-app-dev-westus2-01 \
+            --image ${{ secrets.PROMETHEUS_IMAGE_NAME }}:dev \
+            --set-env-vars BACKEND_URL="https://$BACKEND_URL/actuator/prometheus" RESTART_TRIGGER=$(date +%s)                 
