@@ -82,6 +82,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/mail/**").authenticated()
                         .anyRequest().authenticated()
                 )
