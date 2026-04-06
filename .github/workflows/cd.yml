@@ -44,6 +44,15 @@ jobs:
             --image ${{ secrets.BACKEND_IMAGE_NAME }}:dev \
             --set-env-vars RESTART_TRIGGER=$(date +%s)
 
+      - name: Set BACKEND_URL
+        run: |
+          BACKEND_URL=$(az containerapp show \
+            --name orders-backend-dev-01 \
+            --resource-group orders-rg-app-dev-westus2-01 \
+            --query properties.configuration.ingress.fqdn \
+            -o tsv)
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+
       - name: Restart frontend CA
         run: |
           echo "Restarting frontend container app..."
@@ -51,4 +60,4 @@ jobs:
             --name orders-frontend-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
             --image ${{ secrets.FRONTEND_IMAGE_NAME }}:dev \
-            --set-env-vars RESTART_TRIGGER=$(date +%s)        
+            --set-env-vars BACKEND_URL="https://$BACKEND_URL/" RESTART_TRIGGER=$(date +%s)     
