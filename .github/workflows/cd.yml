@@ -69,4 +69,4 @@ jobs:
             --name orders-prometheus-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
             --image ${{ secrets.PROMETHEUS_IMAGE_NAME }}:dev \
-            --set-env-vars BACKEND_URL="https://$BACKEND_URL/actuator/prometheus" RESTART_TRIGGER=$(date +%s)                 
+            --set-env-vars BACKEND_URL="$BACKEND_URL" RESTART_TRIGGER=$(date +%s)                 
