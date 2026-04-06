@@ -41,6 +41,7 @@ jobs:
           az containerapp update \
             --name orders-backend-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
+            --image ${{ secrets.BACKEND_IMAGE_NAME }}:dev \
             --set-env-vars RESTART_TRIGGER=$(date +%s)
 
       - name: Restart frontend CA
@@ -49,4 +50,5 @@ jobs:
           az containerapp update \
             --name orders-frontend-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
+            --image ${{ secrets.FRONTEND_IMAGE_NAME }}:dev \
             --set-env-vars RESTART_TRIGGER=$(date +%s)        
