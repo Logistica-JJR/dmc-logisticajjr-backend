@@ -2,10 +2,24 @@ name: Build & Push Backend Docker Image
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select environment for Docker image tag"
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+        default: dev
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
+    env:
+      TF_ENV: ${{ github.event.inputs.environment }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,4 +38,4 @@ jobs:
         with:
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.BACKEND_IMAGE_NAME }}:dev
+          tags: ${{ secrets.BACKEND_IMAGE_NAME }}:${{ env.TF_ENV }}
