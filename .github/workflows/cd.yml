@@ -1,4 +1,4 @@
-name: Backend CD
+name: Backend CD (dev → qa → prod)
 
 on:
   push:
@@ -6,9 +6,8 @@ on:
       - main
 
 jobs:
-  build-push-deploy:
+  deploy-dev:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,7 +21,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Build and push backend image (dev)
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -35,16 +34,18 @@ jobs:
         with:
           creds: ${{ secrets.azure_credentials }}
 
-      - name: Restart backend CA
+      - name: Restart backend CA (dev)
         run: |
-          echo "Restarting backend container app..."
+          echo "Restarting backend container app in dev..."
+          RG="orders-rg-app-dev-westus2-01"
+          CA="orders-backend-dev-01"
           az containerapp update \
-            --name orders-backend-dev-01 \
-            --resource-group orders-rg-app-dev-westus2-01 \
+            --name $CA \
+            --resource-group $RG \
             --image ${{ secrets.BACKEND_IMAGE_NAME }}:dev \
             --set-env-vars RESTART_TRIGGER=$(date +%s)
 
-      - name: Set BACKEND_URL
+      - name: Set BACKEND_URL (dev)
         run: |
           BACKEND_URL=$(az containerapp show \
             --name orders-backend-dev-01 \
@@ -53,20 +54,154 @@ jobs:
             -o tsv)
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
 
-      - name: Restart frontend CA
+      - name: Restart frontend CA (dev)
         run: |
-          echo "Restarting frontend container app..."
+          echo "Restarting frontend container app in dev..."
           az containerapp update \
             --name orders-frontend-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
             --image ${{ secrets.FRONTEND_IMAGE_NAME }}:dev \
-            --set-env-vars BACKEND_URL="https://$BACKEND_URL/" RESTART_TRIGGER=$(date +%s)     
+            --set-env-vars BACKEND_URL="https://$BACKEND_URL/" RESTART_TRIGGER=$(date +%s)
 
-      - name: Restart Prometheus CA
+      - name: Restart Prometheus CA (dev)
         run: |
-          echo "Restarting Prometheus container app..."
+          echo "Restarting Prometheus container app in dev..."
           az containerapp update \
             --name orders-prometheus-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
             --image ${{ secrets.PROMETHEUS_IMAGE_NAME }}:dev \
-            --set-env-vars BACKEND_URL="$BACKEND_URL" RESTART_TRIGGER=$(date +%s)                 
+            --set-env-vars BACKEND_URL="$BACKEND_URL" RESTART_TRIGGER=$(date +%s)
+
+  deploy-qa:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend image (qa)
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.BACKEND_IMAGE_NAME }}:qa
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Restart backend CA (qa)
+        run: |
+          echo "Restarting backend container app in qa..."
+          RG="orders-rg-app-qa-westus2-01"
+          CA="orders-backend-qa-01"
+          az containerapp update \
+            --name $CA \
+            --resource-group $RG \
+            --image ${{ secrets.BACKEND_IMAGE_NAME }}:qa \
+            --set-env-vars RESTART_TRIGGER=$(date +%s)
+
+      - name: Set BACKEND_URL (qa)
+        run: |
+          BACKEND_URL=$(az containerapp show \
+            --name orders-backend-qa-01 \
+            --resource-group orders-rg-app-qa-westus2-01 \
+            --query properties.configuration.ingress.fqdn \
+            -o tsv)
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+
+      - name: Restart frontend CA (qa)
+        run: |
+          echo "Restarting frontend container app in qa..."
+          az containerapp update \
+            --name orders-frontend-qa-01 \
+            --resource-group orders-rg-app-qa-westus2-01 \
+            --image ${{ secrets.FRONTEND_IMAGE_NAME }}:qa \
+            --set-env-vars BACKEND_URL="https://$BACKEND_URL/" RESTART_TRIGGER=$(date +%s)
+
+      - name: Restart Prometheus CA (qa)
+        run: |
+          echo "Restarting Prometheus container app in qa..."
+          az containerapp update \
+            --name orders-prometheus-qa-01 \
+            --resource-group orders-rg-app-qa-westus2-01 \
+            --image ${{ secrets.PROMETHEUS_IMAGE_NAME }}:qa \
+            --set-env-vars BACKEND_URL="$BACKEND_URL" RESTART_TRIGGER=$(date +%s)
+
+  deploy-prod:
+    needs: deploy-qa
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend image (prod)
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.BACKEND_IMAGE_NAME }}:prod
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Restart backend CA (prod)
+        run: |
+          echo "Restarting backend container app in prod..."
+          RG="orders-rg-app-prod-westus2-01"
+          CA="orders-backend-prod-01"
+          az containerapp update \
+            --name $CA \
+            --resource-group $RG \
+            --image ${{ secrets.BACKEND_IMAGE_NAME }}:prod \
+            --set-env-vars RESTART_TRIGGER=$(date +%s)
+
+      - name: Set BACKEND_URL (prod)
+        run: |
+          BACKEND_URL=$(az containerapp show \
+            --name orders-backend-prod-01 \
+            --resource-group orders-rg-app-prod-westus2-01 \
+            --query properties.configuration.ingress.fqdn \
+            -o tsv)
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+
+      - name: Restart frontend CA (prod)
+        run: |
+          echo "Restarting frontend container app in prod..."
+          az containerapp update \
+            --name orders-frontend-prod-01 \
+            --resource-group orders-rg-app-prod-westus2-01 \
+            --image ${{ secrets.FRONTEND_IMAGE_NAME }}:prod \
+            --set-env-vars BACKEND_URL="https://$BACKEND_URL/" RESTART_TRIGGER=$(date +%s)
+
+      - name: Restart Prometheus CA (prod)
+        run: |
+          echo "Restarting Prometheus container app in prod..."
+          az containerapp update \
+            --name orders-prometheus-prod-01 \
+            --resource-group orders-rg-app-prod-westus2-01 \
+            --image ${{ secrets.PROMETHEUS_IMAGE_NAME }}:prod \
+            --set-env-vars BACKEND_URL="$BACKEND_URL" RESTART_TRIGGER=$(date +%s)
