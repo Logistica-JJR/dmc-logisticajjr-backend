@@ -50,8 +50,7 @@ jobs:
           BACKEND_URL=$(az containerapp show \
             --name orders-backend-dev-01 \
             --resource-group orders-rg-app-dev-westus2-01 \
-            --query properties.configuration.ingress.fqdn \
-            -o tsv)
+            --query properties.configuration.ingress.fqdn -o tsv)
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
 
       - name: Restart frontend CA (dev)
@@ -75,6 +74,7 @@ jobs:
   deploy-qa:
     needs: deploy-dev
     runs-on: ubuntu-latest
+    environment: qa
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -117,8 +117,7 @@ jobs:
           BACKEND_URL=$(az containerapp show \
             --name orders-backend-qa-01 \
             --resource-group orders-rg-app-qa-westus2-01 \
-            --query properties.configuration.ingress.fqdn \
-            -o tsv)
+            --query properties.configuration.ingress.fqdn -o tsv)
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
 
       - name: Restart frontend CA (qa)
@@ -142,6 +141,7 @@ jobs:
   deploy-prod:
     needs: deploy-qa
     runs-on: ubuntu-latest
+    environment: prod
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -184,8 +184,7 @@ jobs:
           BACKEND_URL=$(az containerapp show \
             --name orders-backend-prod-01 \
             --resource-group orders-rg-app-prod-westus2-01 \
-            --query properties.configuration.ingress.fqdn \
-            -o tsv)
+            --query properties.configuration.ingress.fqdn -o tsv)
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
 
       - name: Restart frontend CA (prod)
